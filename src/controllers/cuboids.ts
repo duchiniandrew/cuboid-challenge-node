@@ -10,8 +10,16 @@ export const list = async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json(cuboids);
 };
 
-export const get = async (req: Request, res: Response): Promise<Response> =>
-  res.sendStatus(200);
+export const get = async (req: Request, res: Response): Promise<Response> => {
+  const { id } = req.params;
+  const cuboid = await Cuboid.query().findById(id);
+
+  if (cuboid) {
+    cuboid.volume = cuboid.width * cuboid.depth * cuboid.depth;
+    return res.status(HttpStatus.OK).json(cuboid);
+  }
+  return res.sendStatus(HttpStatus.NOT_FOUND);
+};
 
 export const create = async (
   req: Request,
@@ -25,6 +33,5 @@ export const create = async (
     depth,
     bagId,
   });
-
   return res.status(HttpStatus.CREATED).json(cuboid);
 };
