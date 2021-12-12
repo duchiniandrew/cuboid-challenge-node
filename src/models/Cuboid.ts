@@ -17,7 +17,7 @@ export class Cuboid extends Base {
     return {
       bag: {
         relation: Base.BelongsToOneRelation,
-        modelClass: 'Bag',
+        modelClass: Bag,
         join: {
           from: 'cuboids.bagId',
           to: 'bags.id',
