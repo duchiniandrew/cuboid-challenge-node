@@ -222,6 +222,20 @@ describe('cuboid update', () => {
 
     expect(response.status).toBe(HttpStatus.UNPROCESSABLE_ENTITY);
   });
+
+  it('should fail to update if bag is not found', async () => {
+    const [newWidth, newHeight, newDepth] = [1, 1, 1];
+    const response = await request(server)
+      .put(urlJoin('/cuboids', cuboid.id.toString()))
+      .send({
+        width: newWidth,
+        height: newHeight,
+        depth: newDepth,
+        bagId: 1000,
+      });
+    expect(response.status).toBe(HttpStatus.NOT_FOUND);
+    expect(response.body.message).toBe('Bag not found');
+  })
 });
 
 describe('cuboid delete', () => {
