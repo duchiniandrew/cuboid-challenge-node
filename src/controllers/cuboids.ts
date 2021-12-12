@@ -55,13 +55,10 @@ export const update = async (
   try {
     const bag = await Bag.query().findById(bagId).withGraphFetched('cuboids');
     if (bag) {
-      const result = await Cuboid.query()
+      await Cuboid.query()
         .update({ width: width, height: height, depth: depth, bagId: bagId })
         .where({ id });
-      if (result) {
-        return res.status(HttpStatus.OK).json();
-      }
-      return res.status(HttpStatus.NOT_FOUND).json();
+      return res.status(HttpStatus.OK).json();
     }
     return res.status(HttpStatus.NOT_FOUND).json({ message: 'Bag not found' });
   } catch (error) {
@@ -75,14 +72,9 @@ export const remove = async (
 ): Promise<Response> => {
   const { id } = req.params;
 
-  try {
-    const result = await Cuboid.query().deleteById(id);
-    if (!result) {
-      return res.status(HttpStatus.NOT_FOUND).json();
-    }
-    return res.status(HttpStatus.OK).json();
-  } catch (error) {
-    console.log(`Error while removing cuboid id:${id}`);
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json();
+  const result = await Cuboid.query().deleteById(id);
+  if (!result) {
+    return res.status(HttpStatus.NOT_FOUND).json();
   }
+  return res.status(HttpStatus.OK).json();
 };
