@@ -45,6 +45,29 @@ export const create = async (
   }
   return res.sendStatus(HttpStatus.NOT_FOUND).json();
 };
+export const update = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id } = req.params;
+  const { width, height, depth, bagId } = req.body;
+
+  try {
+    const bag = await Bag.query().findById(bagId).withGraphFetched('cuboids');
+    if (bag) {
+      const result = await Cuboid.query()
+        .update({ width: width, height: height, depth: depth, bagId: bagId })
+        .where({ id });
+      if (result) {
+        return res.status(HttpStatus.OK).json();
+      }
+      return res.status(HttpStatus.NOT_FOUND).json();
+    }
+    return res.status(HttpStatus.NOT_FOUND).json({ message: 'Bag not found' });
+  } catch (error) {
+    return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json();
+  }
+};
 
 export const remove = async (
   req: Request,
