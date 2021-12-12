@@ -26,6 +26,21 @@ export class Cuboid extends Base {
       }
     });
   }
+  async $beforeUpdate(): Promise<void> {
+    this.volume = this.width * this.height * this.depth;
+    await Bag.transaction(async (trx) => {
+      if (this.bagId) {
+        const bag = await Bag.query(trx).findById(this.bagId);
+        if (bag && bag.availableVolume >= this.volume) {
+          bag.availableVolume -= this.volume;
+          bag.payloadVolume += this.volume;
+          await Bag.query(trx).update(bag).where({ id: this.bagId });
+        } else {
+          throw new Error('Insufficient capacity in bag');
+        }
+      }
+    });
+  }
 
   static tableName = 'cuboids';
 
