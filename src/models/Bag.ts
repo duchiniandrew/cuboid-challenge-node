@@ -10,6 +10,11 @@ export class Bag extends Base {
   availableVolume!: number;
   cuboids?: Cuboid[] | undefined;
 
+  $beforeInsert(): void {
+    this.availableVolume =
+      this.volume - (this.payloadVolume ? this.payloadVolume : 0);
+  }
+
   static tableName = 'bags';
 
   static get relationMappings(): RelationMappings {
