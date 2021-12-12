@@ -5,9 +5,12 @@ import { Bag } from '../models';
 
 export const list = async (req: Request, res: Response): Promise<Response> => {
   const ids = req.query.ids as Id[];
-  const bags = await Bag.query().findByIds(ids).withGraphFetched('cuboids');
-
-  return res.status(200).json(bags);
+  try {
+    const bags = await Bag.query().findByIds(ids).withGraphFetched('cuboids');
+    return res.status(200).json(bags);
+  } catch (error) {
+    return res.status(400).json();
+  }
 };
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
