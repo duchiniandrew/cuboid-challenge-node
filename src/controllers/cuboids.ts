@@ -27,7 +27,7 @@ export const create = async (
 ): Promise<Response> => {
   const { width, height, depth, bagId } = req.body;
 
-  const bag = await Bag.query().findById(bagId).withGraphFetched('cuboids');
+  const bag = await Bag.query().findById(bagId)
   if (bag) {
     try {
       const cuboid = await Cuboid.query().insert({
@@ -53,7 +53,7 @@ export const update = async (
   const { width, height, depth, bagId } = req.body;
 
   try {
-    const bag = await Bag.query().findById(bagId).withGraphFetched('cuboids');
+    const bag = await Bag.query().findById(bagId)
     if (bag) {
       await Cuboid.query()
         .update({ width: width, height: height, depth: depth, bagId: bagId })
