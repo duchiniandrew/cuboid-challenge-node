@@ -55,8 +55,9 @@ export const update = async (
   try {
     const bag = await Bag.query().findById(bagId)
     if (bag) {
+      const volume = width * height * depth
       await Cuboid.query()
-        .update({ width: width, height: height, depth: depth, bagId: bagId })
+        .update({ width: width, height: height, depth: depth, bagId: bagId, volume: volume })
         .where({ id });
       return res.status(HttpStatus.OK).json();
     }

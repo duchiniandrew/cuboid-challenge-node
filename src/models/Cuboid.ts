@@ -1,4 +1,4 @@
-import { Id, RelationMappings } from 'objection';
+import { Id, RelationMappings, QueryContext, ModelOptions } from 'objection';
 import { Bag } from './Bag';
 import Base from './Base';
 
@@ -11,26 +11,18 @@ export class Cuboid extends Base {
   bag!: Bag;
   volume!: number;
 
-  async $beforeInsert(): Promise<void> {
+  async $beforeInsert(queryContext: QueryContext): Promise<void> {
     this.volume = this.width * this.height * this.depth;
-    await Bag.transaction(async (trx) => {
-      if (this.bagId) {
-        const bag = await Bag.query(trx).findById(this.bagId);
-        if (bag && bag.availableVolume >= this.volume) {
-          bag.availableVolume -= this.volume;
-          bag.payloadVolume += this.volume;
-          await Bag.query(trx).update(bag).where({ id: this.bagId });
-        } else {
-          throw new Error('Insufficient capacity in bag');
-        }
-      }
-    });
+    await this.updateBag(queryContext);
   }
-  async $beforeUpdate(): Promise<void> {
-    this.volume = this.width * this.height * this.depth;
+  async $beforeUpdate(opt: ModelOptions, queryContext: QueryContext): Promise<void> {
+    await this.updateBag(queryContext);
+  }
+
+  async updateBag(queryContext: QueryContext) {
     await Bag.transaction(async (trx) => {
       if (this.bagId) {
-        const bag = await Bag.query(trx).findById(this.bagId);
+        const bag = await Bag.query(trx).findById(this.bagId).select('availableVolume', 'payloadVolume');
         if (bag && bag.availableVolume >= this.volume) {
           bag.availableVolume -= this.volume;
           bag.payloadVolume += this.volume;
@@ -40,6 +32,17 @@ export class Cuboid extends Base {
         }
       }
     });
+    // await super.$beforeInsert(queryContext);
+    // if (this.bagId) {
+    //   const bag = await Bag.query(queryContext.transaction).findById(this.bagId).select('availableVolume', 'payloadVolume');
+    //   if (bag && bag.availableVolume >= this.volume) {
+    //     bag.availableVolume -= this.volume;
+    //     bag.payloadVolume += this.volume;
+    //     await Bag.query(queryContext.transaction).update(bag).where({ id: this.bagId });
+    //   } else {
+    //     throw new Error('Insufficient capacity in bag');
+    //   }
+    // }
   }
 
   static tableName = 'cuboids';
