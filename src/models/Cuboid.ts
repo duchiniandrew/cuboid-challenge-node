@@ -32,17 +32,6 @@ export class Cuboid extends Base {
         }
       }
     });
-    // await super.$beforeInsert(queryContext);
-    // if (this.bagId) {
-    //   const bag = await Bag.query(queryContext.transaction).findById(this.bagId).select('availableVolume', 'payloadVolume');
-    //   if (bag && bag.availableVolume >= this.volume) {
-    //     bag.availableVolume -= this.volume;
-    //     bag.payloadVolume += this.volume;
-    //     await Bag.query(queryContext.transaction).update(bag).where({ id: this.bagId });
-    //   } else {
-    //     throw new Error('Insufficient capacity in bag');
-    //   }
-    // }
   }
 
   static tableName = 'cuboids';
