@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { Id } from 'objection';
-import { Cuboid } from '../models';
+import { Bag, Cuboid } from '../models';
 
 export const list = async (req: Request, res: Response): Promise<Response> => {
   const ids = req.query.ids as Id[];
@@ -10,8 +10,16 @@ export const list = async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json(cuboids);
 };
 
-export const get = async (req: Request, res: Response): Promise<Response> =>
-  res.sendStatus(200);
+export const get = async (req: Request, res: Response): Promise<Response> => {
+  const { id } = req.params;
+  const cuboid = await Cuboid.query().findById(id);
+
+  if (cuboid) {
+    cuboid.volume = cuboid.width * cuboid.depth * cuboid.depth;
+    return res.status(HttpStatus.OK).json(cuboid);
+  }
+  return res.sendStatus(HttpStatus.NOT_FOUND);
+};
 
 export const create = async (
   req: Request,
@@ -19,12 +27,55 @@ export const create = async (
 ): Promise<Response> => {
   const { width, height, depth, bagId } = req.body;
 
-  const cuboid = await Cuboid.query().insert({
-    width,
-    height,
-    depth,
-    bagId,
-  });
+  const bag = await Bag.query().findById(bagId)
+  if (bag) {
+    try {
+      const cuboid = await Cuboid.query().insert({
+        width,
+        height,
+        depth,
+        bagId,
+      });
+      return res.status(HttpStatus.CREATED).json(cuboid);
+    } catch (e) {
+      return res
+        .status(HttpStatus.UNPROCESSABLE_ENTITY)
+        .json({ message: 'Insufficient capacity in bag' });
+    }
+  }
+  return res.sendStatus(HttpStatus.NOT_FOUND).json();
+};
+export const update = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id } = req.params;
+  const { width, height, depth, bagId } = req.body;
 
-  return res.status(HttpStatus.CREATED).json(cuboid);
+  try {
+    const bag = await Bag.query().findById(bagId)
+    if (bag) {
+      const volume = width * height * depth
+      await Cuboid.query()
+        .update({ width: width, height: height, depth: depth, bagId: bagId, volume: volume })
+        .where({ id });
+      return res.status(HttpStatus.OK).json();
+    }
+    return res.status(HttpStatus.NOT_FOUND).json({ message: 'Bag not found' });
+  } catch (error) {
+    return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json();
+  }
+};
+
+export const remove = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id } = req.params;
+
+  const result = await Cuboid.query().deleteById(id);
+  if (!result) {
+    return res.status(HttpStatus.NOT_FOUND).json();
+  }
+  return res.status(HttpStatus.OK).json();
 };
